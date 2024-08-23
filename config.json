@@ -1,0 +1,13 @@
+{
+    "url": "https://example.com",
+    "base_check_interval": 1800,
+    "email_sender": "you@example.com",
+    "email_password": "cGFzc3dvcmQ=",
+    "email_receiver": "receiver@example.com",
+    "smtp_server": "smtp.example.com",
+    "smtp_port": 587,
+    "saved_content_file": "saved_page.html",
+    "internet_check_host": "8.8.8.8",
+    "base_div_selector": "div.isotope-wrapper.grid-wrapper.half-gutter",
+    "secondary_div_selector": "div.another-div-selector"
+}
