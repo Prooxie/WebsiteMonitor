@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so the changelog below has something to diff
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Verify the tag matches the packaged version
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(grep -m1 '^version' pyproject.toml | cut -d'"' -f2)"
+          echo "tag=$tag  pyproject=$pkg"
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match pyproject version $pkg"
+            exit 1
+          fi
+
+      - name: Lint
+        run: |
+          uvx ruff@0.16.3 check src tests
+          uvx ruff@0.16.3 format --check src tests
+
+      - name: Test
+        run: uv sync --all-extras && uv run pytest -q
+
+      - name: Build
+        run: uv build
+
+      # Written to a file rather than a step output: commit subjects are
+      # arbitrary text, and interpolating them into a shell argument would break
+      # on the first quote or backtick.
+      - name: Generate release notes
+        run: |
+          set -euo pipefail
+          previous="$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)"
+          {
+            if [ -n "$previous" ]; then
+              echo "### Changes since $previous"
+              echo
+              git log --pretty='- %s' "$previous..${GITHUB_REF_NAME}"
+            else
+              echo "First tagged release."
+            fi
+            echo
+            echo "Run from source with \`uv sync --all-extras && uv run python -m webmonitor\`,"
+            echo "or install the attached wheel."
+          } > RELEASE_NOTES.md
+          cat RELEASE_NOTES.md
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file RELEASE_NOTES.md \
+            dist/*

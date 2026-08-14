@@ -1,6 +1,19 @@
+# Allowlist repo: ignore everything, then re-admit source files.
+# `!*/` is essential - without it git never descends into subdirectories, so
+# the rules below can never match anything outside the repository root.
 *
+!*/
 !*.py
+!*.js
 !*.json
+!*.toml
+!*.md
+!*.cfg
+!*.yml
+!*.yaml
+!.gitignore
+!.gitattributes
+!LICENSE
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

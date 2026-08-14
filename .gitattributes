@@ -1,0 +1,21 @@
+# Normalise to LF in the repository. Without this, a CRLF checkout of a
+# workflow file makes its bash `run:` blocks fail on the runner with
+# `$'\r': command not found`.
+* text=auto eol=lf
+
+*.py     text eol=lf
+*.js     text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.toml   text eol=lf
+*.md     text eol=lf
+*.json   text eol=lf
+*.cfg    text eol=lf
+*.sh     text eol=lf
+
+# Binary assets - never touch these.
+*.png    binary
+*.ico    binary
+*.db     binary
+*.whl    binary
+*.gz     binary
